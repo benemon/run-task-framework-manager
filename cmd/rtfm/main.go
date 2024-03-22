@@ -52,14 +52,20 @@ func generateGoScaffold(runTaskName, workingDir string) error {
 	}
 
 	templates := map[string]interface{}{
-		"go.mod":        struct{ RunTaskName, GoVersion string }{RunTaskName: runTaskName, GoVersion: goVersion},
-		"main.go":       struct{}{},
-		"Containerfile": struct{ RunTaskName, GoVersion string }{RunTaskName: runTaskName, GoVersion: goVersion},
+		"go.mod":                                          struct{ RunTaskName, GoVersion string }{RunTaskName: runTaskName, GoVersion: goVersion},
+		"cmd/main.go":                                     struct{ RunTaskName string }{RunTaskName: runTaskName},
+		"internal/api/run_task_request.go":                struct{}{},
+		"internal/api/run_task_response.go":               struct{}{},
+		"internal/controller/run_task_controller.go":      struct{}{},
+		"internal/controller/run_task_controller_test.go": struct{}{},
+		"Containerfile":                                   struct{ RunTaskName, GoVersion string }{RunTaskName: runTaskName, GoVersion: goVersion},
 		// Add more templates here...
 	}
 
-	for templateName, data := range templates {
-		templateContent, err := goTemplates.ReadFile(fmt.Sprintf("resources/go/%s.tmpl", templateName))
+	for templatePath, data := range templates {
+		templatePath = filepath.FromSlash(templatePath)
+		templateName := filepath.Base(templatePath)
+		templateContent, err := goTemplates.ReadFile(fmt.Sprintf("resources/go/%s.tmpl", templatePath))
 		if err != nil {
 			return fmt.Errorf("failed to read %s template: %w", templateName, err)
 		}
@@ -69,10 +75,17 @@ func generateGoScaffold(runTaskName, workingDir string) error {
 			return fmt.Errorf("failed to parse %s template: %w", templateName, err)
 		}
 
-		outputFile := filepath.Join(targetDir, templateName)
+		outputFile := filepath.Join(targetDir, templatePath)
+		outputDir := filepath.Dir(outputFile)
+
+		// Ensure the directory exists
+		if err := os.MkdirAll(outputDir, 0755); err != nil {
+			return fmt.Errorf("failed to create directory for %s: %w", templatePath, err)
+		}
+
 		f, err := os.Create(outputFile)
 		if err != nil {
-			return fmt.Errorf("failed to create %s file: %w", templateName, err)
+			return fmt.Errorf("failed to create %s file: %w", templatePath, err)
 		}
 		defer f.Close()
 
@@ -99,8 +112,10 @@ func generatePythonScaffold(runTaskName, workingDir string) error {
 		// Add more templates here...
 	}
 
-	for templateName, data := range templates {
-		templateContent, err := pythonTemplates.ReadFile(fmt.Sprintf("resources/python/%s.tmpl", templateName))
+	for templatePath, data := range templates {
+		templatePath = filepath.FromSlash(templatePath)
+		templateName := filepath.Base(templatePath)
+		templateContent, err := pythonTemplates.ReadFile(fmt.Sprintf("resources/python/%s.tmpl", templatePath))
 		if err != nil {
 			return fmt.Errorf("failed to read %s template: %w", templateName, err)
 		}
@@ -110,14 +125,22 @@ func generatePythonScaffold(runTaskName, workingDir string) error {
 			return fmt.Errorf("failed to parse %s template: %w", templateName, err)
 		}
 
-		outputFile := filepath.Join(targetDir, templateName)
+		// If the template is main.py, replace it with runTaskName
 		if templateName == "main.py" {
-			outputFile = filepath.Join(targetDir, fmt.Sprintf("%s.py", runTaskName))
+			templatePath = filepath.Join(filepath.Dir(templatePath), runTaskName+".py")
+		}
+
+		outputFile := filepath.Join(targetDir, templatePath)
+		outputDir := filepath.Dir(outputFile)
+
+		// Ensure the directory exists
+		if err := os.MkdirAll(outputDir, 0755); err != nil {
+			return fmt.Errorf("failed to create directory for %s: %w", templatePath, err)
 		}
 
 		f, err := os.Create(outputFile)
 		if err != nil {
-			return fmt.Errorf("failed to create %s file: %w", outputFile, err)
+			return fmt.Errorf("failed to create %s file: %w", templatePath, err)
 		}
 		defer f.Close()
 
@@ -125,6 +148,7 @@ func generatePythonScaffold(runTaskName, workingDir string) error {
 		if err != nil {
 			return fmt.Errorf("failed to execute %s template: %w", templateName, err)
 		}
+
 	}
 
 	return nil
@@ -152,7 +176,7 @@ func main() {
 			return
 		}
 	default:
-		fmt.Printf("Unsupported language: %s\n", *language)
+		fmt.Printf("Unsupported language: %s", *language)
 		return
 	}
 
