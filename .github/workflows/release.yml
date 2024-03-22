@@ -23,21 +23,17 @@ jobs:
       env:
         GOOS: linux
         GOARCH: amd64
-      run: |
-        go build -v -o rtfm-linux-amd64 ./cmd/rtfm
+      run: go build -v -o rtfm-linux-amd64 ./cmd/rtfm
 
     - name: Build for macOS
       env:
         GOOS: darwin
         GOARCH: amd64
-      run: |
-        go build -v -o rtfm-darwin-amd64 ./cmd/rtfm
+      run: go build -v -o rtfm-darwin-amd64 ./cmd/rtfm
 
     - name: Create and Upload Release
       uses: softprops/action-gh-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        files: |
-          rtfm-darwin-amd64
-          rtfm-linux-amd64
+        files: rtfm-linux-amd64
