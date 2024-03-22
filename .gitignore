@@ -3,7 +3,6 @@
 **/*.so
 **/*.plugin
 **/*.test
-**/*[._-]test.go
 *.out
 *.exe
 *.exe~
