@@ -17,7 +17,7 @@ jobs:
         go-version: '^1.22'
 
     - name: Go Get
-      run: go get -v ./cmd/rtfm
+      run: go get -t ./cmd/rtfm
 
     - name: Go Test
       run: go test ./...
