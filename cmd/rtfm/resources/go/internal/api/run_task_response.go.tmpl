@@ -1,1 +1,12 @@
 package api
+
+type RunTaskResponse struct {
+	Data struct {
+		Type       string `json:"type"`
+		Attributes struct {
+			Status  string `json:"status"`
+			Message string `json:"message,omitempty"`
+			URL     string `json:"url,omitempty"`
+		} `json:"attributes"`
+	} `json:"data"`
+}

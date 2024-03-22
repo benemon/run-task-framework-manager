@@ -1,12 +1,9 @@
 package main
 
 import (
-	"fmt"
-	controller "github.com/{{.RunTaskName}}/internal/controller"
-    api "github.com/{{.RunTaskName}}/internal/api"
-
+	"{{.RunTaskName}}/internal/controller"
 )
 
 func main() {
-	fmt.Println("Hello, World!")
+	controller.RunTaskController()
 }
