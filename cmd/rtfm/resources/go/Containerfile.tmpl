@@ -4,21 +4,23 @@ FROM golang:{{.GoVersion}} AS builder
 # Set the Current Working Directory inside the container
 WORKDIR /build
 
-# Copy go mod files
-COPY go.mod ./
-
-# Download all dependencies. Dependencies will be cached if the go.mod and go.sum files are not changed
-RUN go mod download
-
 # Copy the source from the current directory to the Working Directory inside the container
 COPY . .
 
-# Build the Go app
-RUN go build -o {{.RunTaskName}} .
+# Download all dependencies. Dependencies will be cached if the go.mod and go.sum files are not changed
+RUN go mod tidy
 
-FROM registry.access.redhat.com/ubi9/ubi-micro:latest
+# Build the Go app
+RUN go build -o {{.RunTaskName}} cmd/main.go
+
+FROM registry.access.redhat.com/ubi9/ubi-minimal:latest
 
 WORKDIR /opt/rtfm/
+
+# Download and install the Amazon Root CA certificate
+RUN curl -o Amazon-RSA-2048-M03.pem https://www.amazontrust.com/repository/Amazon-RSA-2048-M03.pem && \
+    cp Amazon-RSA-2048-M03.pem /etc/pki/ca-trust/source/anchors/ && \
+    update-ca-trust
 
 # Copy the binary from the builder stage
 COPY --from=builder /build/{{.RunTaskName}} .
