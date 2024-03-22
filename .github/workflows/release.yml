@@ -25,10 +25,10 @@ jobs:
         GOARCH: amd64
       run: go build -v -o rtfm-linux-amd64 ./cmd/rtfm
 
-    - name: Build for macOS
+    - name: Build for macOS (Apple Silicon)
       env:
         GOOS: darwin
-        GOARCH: amd64
+        GOARCH: arm64
       run: go build -v -o rtfm-darwin-amd64 ./cmd/rtfm
 
     - name: Create and Upload Release
@@ -36,4 +36,6 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        files: rtfm-linux-amd64
+        files: |
+          rtfm-darwin-arm64
+          rtfm-linux-amd64
