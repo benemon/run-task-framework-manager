@@ -59,6 +59,7 @@ func generateGoScaffold(runTaskName, workingDir string) error {
 		"internal/controller/run_task_controller.go":      struct{ RunTaskName string }{RunTaskName: runTaskName},
 		"internal/controller/run_task_controller_test.go": struct{}{},
 		"Containerfile":                                   struct{ RunTaskName, GoVersion string }{RunTaskName: runTaskName, GoVersion: goVersion},
+		"README.md":                                       struct{ RunTaskName string }{RunTaskName: runTaskName},
 		// Add more templates here...
 	}
 

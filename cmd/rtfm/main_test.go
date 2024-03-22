@@ -102,6 +102,7 @@ func TestGenerateGoScaffold(t *testing.T) {
 		"internal/controller/run_task_controller.go",
 		"internal/controller/run_task_controller_test.go",
 		"Containerfile",
+		"README.md",
 		// Add more expected files here...
 	}
 
