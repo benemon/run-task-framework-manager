@@ -123,6 +123,7 @@ func sendResponse(response *api.RunTaskResponse, uri string, token string) {
 }
 
 func RunTaskController() {
+	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 
 	router.POST("/api", func(c *gin.Context) {
