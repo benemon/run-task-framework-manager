@@ -29,7 +29,7 @@ jobs:
       env:
         GOOS: darwin
         GOARCH: arm64
-      run: go build -v -o rtfm-darwin-amd64 ./cmd/rtfm
+      run: go build -v -o rtfm-darwin-arm64 ./cmd/rtfm
 
     - name: Create and Upload Release
       uses: softprops/action-gh-release@v1
