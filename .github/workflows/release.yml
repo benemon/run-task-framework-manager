@@ -16,7 +16,10 @@ jobs:
       with:
         go-version: '^1.22'
 
-    - name: Test
+    - name: Go Get
+      run: go get -v ./cmd/rtfm
+
+    - name: Go Test
       run: go test ./...
         
     - name: Build for Linux
