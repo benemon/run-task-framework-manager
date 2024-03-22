@@ -39,7 +39,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        prelease: true
+        prerelease: true
         files: |
           rtfm-darwin-arm64
           rtfm-linux-amd64
