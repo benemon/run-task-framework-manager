@@ -1,0 +1,30 @@
+# Start from the latest Python base image
+FROM python:3 AS builder
+
+# Set the Current Working Directory inside the container
+WORKDIR /build
+
+# Copy the requirements.txt file
+COPY requirements.txt ./
+
+# Install any dependencies listed in the requirements.txt file
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the source from the current directory to the Working Directory inside the container
+COPY . .
+
+FROM registry.access.redhat.com/ubi9/ubi-minimal:latest
+
+# Install Python
+RUN microdnf install python3 -y && microdnf clean all
+
+WORKDIR /opt/rtfm
+
+# Copy the Python application from the builder stage
+COPY --from=builder /build .
+
+# Expose port 8080 and 8443 to the outside world
+EXPOSE 8080 8443
+
+# Command to run the application
+CMD ["python3", "./{{.RunTaskName}}.py"]

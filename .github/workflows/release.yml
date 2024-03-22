@@ -1,0 +1,69 @@
+name: Build and Release
+on:
+  push:
+    tags:
+      - 'v*'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: '^1.22'
+
+    - name: Test
+      run: go test ./...
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+        
+    - name: Build for Linux
+      env:
+        GOOS: linux
+        GOARCH: amd64
+      run: |
+        go build -v -o rtfm-linux-amd64 ./cmd/rtfm
+        mv rtfm-linux-amd64 rtfm
+
+    - name: Upload Linux Release Asset
+      id: upload-linux-release-asset 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./rtfm
+        asset_name: rtfm
+        asset_content_type: application/octet-stream
+
+    - name: Build for macOS
+      env:
+        GOOS: darwin
+        GOARCH: amd64
+      run: |
+        go build -v -o rtfm-darwin-amd64 ./cmd/rtfm
+        mv rtfm-darwin-amd64 rtfm
+
+    - name: Upload macOS Release Asset
+      id: upload-macos-release-asset 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./rtfm
+        asset_name: rtfm
+        asset_content_type: application/octet-stream

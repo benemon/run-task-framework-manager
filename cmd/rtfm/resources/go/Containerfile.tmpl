@@ -1,0 +1,30 @@
+# Start from the latest golang base image
+FROM golang:{{.GoVersion}} AS builder
+
+# Set the Current Working Directory inside the container
+WORKDIR /build
+
+# Copy go mod files
+COPY go.mod ./
+
+# Download all dependencies. Dependencies will be cached if the go.mod and go.sum files are not changed
+RUN go mod download
+
+# Copy the source from the current directory to the Working Directory inside the container
+COPY . .
+
+# Build the Go app
+RUN go build -o {{.RunTaskName}} .
+
+FROM registry.access.redhat.com/ubi9/ubi-micro:latest
+
+WORKDIR /opt/rtfm/
+
+# Copy the binary from the builder stage
+COPY --from=builder /build/{{.RunTaskName}} .
+
+# Expose port 8080 and 8443 to the outside world
+EXPOSE 8080 8443
+
+# Command to run the executable
+CMD ["./{{.RunTaskName}}"]
