@@ -20,7 +20,8 @@ WORKDIR /opt/rtfm/
 # Download and install the Amazon Root CA certificate
 RUN curl -o Amazon-RSA-2048-M03.pem https://www.amazontrust.com/repository/Amazon-RSA-2048-M03.pem && \
     cp Amazon-RSA-2048-M03.pem /etc/pki/ca-trust/source/anchors/ && \
-    update-ca-trust
+    update-ca-trust && \
+    rm Amazon-RSA-2048-M03.pem
 
 # Copy the binary from the builder stage
 COPY --from=builder /build/{{.RunTaskName}} .
