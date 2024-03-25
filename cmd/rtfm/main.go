@@ -110,6 +110,7 @@ func generatePythonScaffold(runTaskName, workingDir string) error {
 		"main.py":          struct{}{},
 		"requirements.txt": struct{}{},
 		"Containerfile":    struct{ RunTaskName string }{RunTaskName: runTaskName},
+		"README.md":        struct{ RunTaskName string }{RunTaskName: runTaskName},
 		// Add more templates here...
 	}
 

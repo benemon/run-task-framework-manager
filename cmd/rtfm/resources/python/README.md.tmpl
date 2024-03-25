@@ -1,0 +1,22 @@
+# {{.RunTaskName}}
+
+Boilerlate Run Task for Terraform Cloud or Terraform Enterprise.
+
+## Usage
+
+To build and run locally:
+
+```bash
+$ python {{.RunTaskName}}.py
+```
+To build and run in a container:
+
+```bash
+$ podman build . -t {{.RunTaskName}}
+
+$ podman run -p 8080:8080 -p 8443:8443 {{.RunTaskName}}:latest  
+```
+
+## Developing
+
+TBC

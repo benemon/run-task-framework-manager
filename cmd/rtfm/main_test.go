@@ -128,6 +128,7 @@ func TestGeneratePythonScaffold(t *testing.T) {
 		"testGeneratePythonScaffold.py",
 		"requirements.txt",
 		"Containerfile",
+		"README.md",
 	}
 
 	for _, file := range expectedFiles {
