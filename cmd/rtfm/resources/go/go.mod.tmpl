@@ -1,5 +1,8 @@
 module {{.RunTaskName}}
 
-go {{.GoVersion}}
+go {{.RuntimeVersion}}
 
-require github.com/gin-gonic/gin v1.9.1
+require (
+	github.com/gorilla/mux v1.8.1
+	github.com/hashicorp/terraform-json v0.21.0
+)

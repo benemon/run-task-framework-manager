@@ -1,5 +1,5 @@
 # Start from the latest golang base image
-FROM golang:{{.GoVersion}} AS builder
+FROM golang:{{.RuntimeVersion}} AS builder
 
 # Set the Current Working Directory inside the container
 WORKDIR /build
@@ -11,7 +11,7 @@ COPY . .
 RUN go mod tidy
 
 # Build the Go app
-RUN go build -o {{.RunTaskName}} cmd/main.go
+RUN go build -o {{.RunTaskName}} main.go
 
 FROM registry.access.redhat.com/ubi9/ubi-minimal:latest
 
@@ -26,8 +26,8 @@ RUN curl -o Amazon-RSA-2048-M03.pem https://www.amazontrust.com/repository/Amazo
 # Copy the binary from the builder stage
 COPY --from=builder /build/{{.RunTaskName}} .
 
-# Expose port 8080 and 8443 to the outside world
-EXPOSE 8080 8443
+# Expose port 22180 to the outside world
+EXPOSE 22180
 
 # Command to run the executable
 CMD ["./{{.RunTaskName}}"]

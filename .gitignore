@@ -6,9 +6,6 @@
 *.so
 *.dylib
 
-# Compiled binary
-rtfm
-
 # Test binary, build with `go test -c`
 *.test
 
