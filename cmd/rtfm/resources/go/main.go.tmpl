@@ -1,0 +1,21 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
+package main
+
+import (
+	"flag"
+	"{{.RunTaskName}}/internal/runtask"
+)
+
+func main() {
+    // Define command-line parameters
+    var addr = flag.String("addr", "22180", "specifies the TCP address for the server to listen on")
+    var path = flag.String("path", "/runtask", "defines a matcher for the route URL path. It accepts a template with zero or more URL variables enclosed by {}. The template must start with a \"/\"")
+	var hmacKey = flag.String("hmacKey", "", "defines the HMAC Key used for verifying the TFC request")
+    flag.Parse()
+
+	task := runtask.NewRunTask()
+	task.Configure(*addr, *path, *hmacKey)
+	runtask.HandleRequests(task)
+}

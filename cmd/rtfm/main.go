@@ -4,6 +4,7 @@ import (
 	"embed"
 	"flag"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -22,6 +23,11 @@ var (
 	workingDir *string
 	language   *string
 )
+
+type TemplateData struct {
+	RunTaskName    string
+	RuntimeVersion string
+}
 
 func init() {
 	name = flag.String("name", "", "Run Task name (required)")
@@ -43,81 +49,43 @@ func createTargetDir(workingDir, runTaskName string) (string, error) {
 	return targetDir, nil
 }
 
-func generateGoScaffold(runTaskName, workingDir string) error {
-	goVersion := strings.TrimPrefix(runtime.Version(), "go")
-
+func generateScaffold(runTaskName, workingDir, version string, templates embed.FS) error {
 	targetDir, err := createTargetDir(workingDir, runTaskName)
 	if err != nil {
 		return err
 	}
 
-	templates := map[string]interface{}{
-		"go.mod":                                          struct{ RunTaskName, GoVersion string }{RunTaskName: runTaskName, GoVersion: goVersion},
-		"cmd/main.go":                                     struct{ RunTaskName string }{RunTaskName: runTaskName},
-		"internal/api/run_task_request.go":                struct{}{},
-		"internal/api/run_task_response.go":               struct{}{},
-		"internal/controller/run_task_controller.go":      struct{ RunTaskName string }{RunTaskName: runTaskName},
-		"internal/controller/run_task_controller_test.go": struct{}{},
-		"Containerfile":                                   struct{ RunTaskName, GoVersion string }{RunTaskName: runTaskName, GoVersion: goVersion},
-		"README.md":                                       struct{ RunTaskName string }{RunTaskName: runTaskName},
-		// Add more templates here...
+	tmplParams := TemplateData{
+		RunTaskName:    runTaskName,
+		RuntimeVersion: version,
 	}
 
-	for templatePath, data := range templates {
-		templatePath = filepath.FromSlash(templatePath)
-		templateName := filepath.Base(templatePath)
-		templateContent, err := goTemplates.ReadFile(fmt.Sprintf("resources/go/%s.tmpl", templatePath))
+	var templateFiles []string
+	var rootDir string
+	err = fs.WalkDir(templates, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
-			return fmt.Errorf("failed to read %s template: %w", templateName, err)
+			return err
 		}
 
-		tmpl, err := template.New(templateName).Parse(string(templateContent))
-		if err != nil {
-			return fmt.Errorf("failed to parse %s template: %w", templateName, err)
+		if rootDir == "" && !d.IsDir() {
+			rootDir = filepath.Dir(path)
 		}
 
-		outputFile := filepath.Join(targetDir, templatePath)
-		outputDir := filepath.Dir(outputFile)
-
-		// Ensure the directory exists
-		if err := os.MkdirAll(outputDir, 0755); err != nil {
-			return fmt.Errorf("failed to create directory for %s: %w", templatePath, err)
+		if !d.IsDir() && strings.HasSuffix(d.Name(), ".tmpl") {
+			templateFiles = append(templateFiles, strings.TrimSuffix(path, ".tmpl"))
 		}
 
-		f, err := os.Create(outputFile)
-		if err != nil {
-			return fmt.Errorf("failed to create %s file: %w", templatePath, err)
-		}
-		defer f.Close()
+		return nil
+	})
 
-		err = tmpl.Execute(f, data)
-		if err != nil {
-			return fmt.Errorf("failed to execute %s template: %w", templateName, err)
-		}
-	}
-
-	return nil
-}
-
-func generatePythonScaffold(runTaskName, workingDir string) error {
-
-	targetDir, err := createTargetDir(workingDir, runTaskName)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to discover template files: %w", err)
 	}
 
-	templates := map[string]interface{}{
-		"main.py":          struct{}{},
-		"requirements.txt": struct{}{},
-		"Containerfile":    struct{ RunTaskName string }{RunTaskName: runTaskName},
-		"README.md":        struct{ RunTaskName string }{RunTaskName: runTaskName},
-		// Add more templates here...
-	}
-
-	for templatePath, data := range templates {
+	for _, templatePath := range templateFiles {
 		templatePath = filepath.FromSlash(templatePath)
 		templateName := filepath.Base(templatePath)
-		templateContent, err := pythonTemplates.ReadFile(fmt.Sprintf("resources/python/%s.tmpl", templatePath))
+		templateContent, err := templates.ReadFile(fmt.Sprintf("%s.tmpl", templatePath))
 		if err != nil {
 			return fmt.Errorf("failed to read %s template: %w", templateName, err)
 		}
@@ -132,7 +100,7 @@ func generatePythonScaffold(runTaskName, workingDir string) error {
 			templatePath = filepath.Join(filepath.Dir(templatePath), runTaskName+".py")
 		}
 
-		outputFile := filepath.Join(targetDir, templatePath)
+		outputFile := filepath.Join(targetDir, processTemplatePath(templatePath, rootDir, ".tmpl"))
 		outputDir := filepath.Dir(outputFile)
 
 		// Ensure the directory exists
@@ -146,14 +114,17 @@ func generatePythonScaffold(runTaskName, workingDir string) error {
 		}
 		defer f.Close()
 
-		err = tmpl.Execute(f, data)
+		err = tmpl.Execute(f, tmplParams)
 		if err != nil {
 			return fmt.Errorf("failed to execute %s template: %w", templateName, err)
 		}
-
 	}
 
 	return nil
+}
+
+func processTemplatePath(path, prefix, suffix string) string {
+	return strings.TrimSuffix(strings.TrimPrefix(path, prefix), suffix)
 }
 
 func main() {
@@ -166,13 +137,13 @@ func main() {
 
 	switch *language {
 	case "go":
-		err := generateGoScaffold(*name, *workingDir)
+		err := generateScaffold(*name, *workingDir, strings.TrimPrefix(runtime.Version(), "go"), goTemplates)
 		if err != nil {
 			fmt.Printf("Failed to generate Go scaffold: %v\n", err)
 			return
 		}
 	case "python":
-		err := generatePythonScaffold(*name, *workingDir)
+		err := generateScaffold(*name, *workingDir, "", pythonTemplates)
 		if err != nil {
 			fmt.Printf("Failed to generate Python scaffold: %v\n", err)
 			return

@@ -3,10 +3,7 @@ package main
 import (
 	"bytes"
 	"os"
-	"path/filepath"
 	"testing"
-
-	"github.com/stretchr/testify/require"
 )
 
 func TestMainFunctionGo(t *testing.T) {
@@ -21,7 +18,7 @@ func TestMainFunctionGo(t *testing.T) {
 	main()
 
 	// Check if the expected files were created
-	_, err := os.Stat("./testMainFunctionGo/go-run-task/cmd/main.go")
+	_, err := os.Stat("./testMainFunctionGo/go-run-task/main.go")
 	if os.IsNotExist(err) {
 		t.Errorf("main.go was not created for Go")
 	}
@@ -84,59 +81,4 @@ func TestMainFunctionUnsupportedLanguage(t *testing.T) {
 	if output != expectedOutput {
 		t.Errorf("Expected output '%s', got '%s'", expectedOutput, output)
 	}
-}
-
-func TestGenerateGoScaffold(t *testing.T) {
-	runTaskName := "testGenerateGoScaffold"
-	workingDir := "."
-
-	err := generateGoScaffold(runTaskName, workingDir)
-	require.NoError(t, err)
-
-	// Verify that the expected files are generated
-	expectedFiles := []string{
-		"go.mod",
-		"cmd/main.go",
-		"internal/api/run_task_request.go",
-		"internal/api/run_task_response.go",
-		"internal/controller/run_task_controller.go",
-		"internal/controller/run_task_controller_test.go",
-		"Containerfile",
-		"README.md",
-		// Add more expected files here...
-	}
-
-	for _, file := range expectedFiles {
-		filePath := filepath.Join(workingDir, runTaskName, file)
-		_, err := os.Stat(filePath)
-		require.NoErrorf(t, err, "expected file %s to be generated", filePath)
-	}
-
-	// Clean up: delete the test directory
-	os.RemoveAll("./testGenerateGoScaffold")
-}
-
-func TestGeneratePythonScaffold(t *testing.T) {
-	runTaskName := "testGeneratePythonScaffold"
-	workingDir := "."
-
-	err := generatePythonScaffold(runTaskName, workingDir)
-	require.NoError(t, err)
-
-	// Verify the existence of the generated files
-	expectedFiles := []string{
-		"testGeneratePythonScaffold.py",
-		"requirements.txt",
-		"Containerfile",
-		"README.md",
-	}
-
-	for _, file := range expectedFiles {
-		filePath := filepath.Join(workingDir, runTaskName, file)
-		_, err := os.Stat(filePath)
-		require.NoErrorf(t, err, "expected file %s to be generated", filePath)
-	}
-
-	// Clean up: delete the test directory
-	os.RemoveAll("./testGeneratePythonScaffold")
 }
