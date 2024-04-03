@@ -95,6 +95,11 @@ func generateScaffold(runTaskName, workingDir, version string, templates embed.F
 			return fmt.Errorf("failed to parse %s template: %w", templateName, err)
 		}
 
+		// If the template is main.py, replace it with runTaskName
+		if templateName == "main.py" {
+			templatePath = filepath.Join(filepath.Dir(templatePath), runTaskName+".py")
+		}
+
 		outputFile := filepath.Join(targetDir, processTemplatePath(templatePath, rootDir, ".tmpl"))
 		outputDir := filepath.Dir(outputFile)
 
