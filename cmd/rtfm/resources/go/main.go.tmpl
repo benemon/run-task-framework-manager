@@ -10,10 +10,10 @@ import (
 
 func main() {
     // Define command-line parameters
-    var addr = flag.String("addr", "22180", "specifies the TCP address for the server to listen on")
-    var path = flag.String("path", "/runtask", "defines a matcher for the route URL path. It accepts a template with zero or more URL variables enclosed by {}. The template must start with a \"/\"")
-	var hmacKey = flag.String("hmacKey", "", "defines the HMAC Key used for verifying the TFC request")
-    flag.Parse()
+	var addr = flag.String("addr", "22180", "the port the run task HTTP server will run on. Defaults to 22180.")
+	var path = flag.String("path", "/{{.RunTaskName}}", "the URL path for the run task to receive HTTP request from TFC or TFE. Defaults to the Run Task name.")
+	var hmacKey = flag.String("hmacKey", "", "the customizable secret which TFC or TFE will use to sign requests to the run task. Default to empty.")
+	flag.Parse()
 
 	task := runtask.NewRunTask()
 	task.Configure(*addr, *path, *hmacKey)
